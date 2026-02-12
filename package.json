@@ -1,0 +1,20 @@
+{
+  "name": "skinpress",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node build.mjs",
+    "build:vite": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "gh-pages": "^6.1.0"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "webp-wasm": "^1.0.1"
+  }
+}

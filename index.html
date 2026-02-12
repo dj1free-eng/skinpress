@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>SkinPress - PNG to WebP Lossless</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1>🎨 SkinPress</h1>
+        <p>PNG → WebP Lossless</p>
+        <button id="btnUpdate" class="btn-update" style="display: none;">
+          🔄 Actualizar disponible
+        </button>
+        <button id="btnHelp" class="btn-help" style="margin-top: 0.5rem; background: rgba(255,255,255,0.2); color: white; border: none; padding: 0.4rem 1rem; border-radius: 15px; cursor: pointer; font-size: 0.8rem;">
+          ❓ Guía rápida
+        </button>
+      </div>
+    </header>
+
+    <!-- Upload Zone -->
+    <section class="upload-zone" id="uploadZone">
+      <div class="upload-content">
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+        </svg>
+        <h2>Arrastra archivos PNG aquí</h2>
+        <p>o haz clic para seleccionar</p>
+        <input type="file" id="fileInput" accept=".png,image/png" multiple style="display: none;">
+        <button id="btnSelect" class="btn-primary">📁 Seleccionar PNG</button>
+      </div>
+    </section>
+
+    <!-- Files List -->
+    <section class="files-section" id="filesSection" style="display: none;">
+      <div class="section-header">
+        <h2>Archivos cargados (<span id="fileCount">0</span>)</h2>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span class="progress-text" id="progressText">0%</span>
+        </div>
+      </div>
+
+      <div id="filesList" class="files-list"></div>
+
+      <!-- Actions -->
+      <div class="actions-bar">
+        <button id="btnConvertAll" class="btn-primary">
+          ⚡ Convertir todo
+        </button>
+        <button id="btnDownloadSelected" class="btn-secondary" disabled>
+          📥 Descargar seleccionados
+        </button>
+        <button id="btnDownloadZip" class="btn-secondary" disabled>
+          📦 Descargar ZIP
+        </button>
+        <button id="btnCopyJson" class="btn-secondary" disabled>
+          📋 Copiar index.json
+        </button>
+        <button id="btnDownloadJson" class="btn-secondary" disabled>
+          💾 Descargar index.json
+        </button>
+        <button id="btnReset" class="btn-danger">
+          🔄 Reiniciar
+        </button>
+      </div>
+    </section>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="previewTitle">Preview</h3>
+          <button id="btnClosePreview" class="btn-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="preview-toggle">
+            <button id="btnShowOriginal" class="toggle-btn active">Original PNG</button>
+            <button id="btnShowWebp" class="toggle-btn">WebP Lossless</button>
+          </div>
+          <div class="preview-container">
+            <canvas id="previewCanvas"></canvas>
+          </div>
+          <div class="preview-info" id="previewInfo"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Editar nombre de salida</h3>
+          <button id="btnCloseEdit" class="btn-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nombre de archivo (slug)</label>
+            <input type="text" id="editSlug" class="input-text" placeholder="skin_nombre">
+            <small>Se agregará prefijo "skin_" y extensión ".webp" automáticamente</small>
+          </div>
+          <div class="form-group">
+            <label>Etiqueta (label)</label>
+            <input type="text" id="editLabel" class="input-text" placeholder="Nombre bonito">
+          </div>
+          <div class="modal-actions">
+            <button id="btnCancelEdit" class="btn-secondary">Cancelar</button>
+            <button id="btnSaveEdit" class="btn-primary">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📖 Guía rápida</h3>
+          <button id="btnCloseHelp" class="btn-close">✕</button>
+        </div>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <h4 style="margin-top: 0;">🚀 Cómo usar SkinPress</h4>
+          
+          <div style="background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+            <h5 style="margin-top: 0;">1️⃣ Cargar archivos PNG</h5>
+            <p style="margin: 0;">Arrastra archivos PNG o usa el botón "Seleccionar PNG"</p>
+          </div>
+
+          <div style="background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+            <h5 style="margin-top: 0;">2️⃣ Convertir</h5>
+            <p style="margin: 0;">Click en "⚡ Convertir todo" y espera. La conversión es <strong>100% lossless</strong> (sin pérdida).</p>
+          </div>
+
+          <div style="background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+            <h5 style="margin-top: 0;">3️⃣ Descargar</h5>
+            <p style="margin-bottom: 0.5rem;">Opciones:</p>
+            <ul style="margin: 0; padding-left: 1.5rem;">
+              <li><strong>Archivo individual:</strong> Botón 💾 en cada archivo</li>
+              <li><strong>ZIP completo:</strong> Botón "📦 Descargar ZIP"</li>
+              <li><strong>index.json:</strong> Para integrar con Phaser 3</li>
+            </ul>
+          </div>
+
+          <h4>🎮 Integración con Phaser 3</h4>
+          <div style="background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+            <p style="margin-bottom: 0.5rem;">El ZIP contiene:</p>
+            <pre style="background: #000; padding: 0.75rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem;"><code>skins/
+  skin_nombre1.webp
+  skin_nombre2.webp
+index.json</code></pre>
+            <p style="margin-top: 0.75rem; margin-bottom: 0;">Descomprime en <code style="background: rgba(108,92,231,0.2); padding: 0.2rem 0.4rem; border-radius: 3px;">public/assets/</code> de tu proyecto.</p>
+          </div>
+
+          <h4>✏️ Editar nombres</h4>
+          <p>Usa el botón "✏️ Editar" en cada archivo para cambiar:</p>
+          <ul style="padding-left: 1.5rem;">
+            <li><strong>Slug:</strong> Nombre del archivo (ej: "racing_blue")</li>
+            <li><strong>Label:</strong> Nombre visual (ej: "Racing Blue")</li>
+          </ul>
+
+          <h4>📋 Copiar ruta</h4>
+          <p style="margin-bottom: 0;">Usa "📋 Copiar ruta" para obtener la ruta de Phaser:</p>
+          <pre style="background: #000; padding: 0.75rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; margin-top: 0.5rem;"><code>assets/skins/skin_nombre.webp</code></pre>
+
+          <h4>🔄 Uso offline</h4>
+          <p><strong>En iPhone:</strong> Safari → Compartir → "Añadir a pantalla de inicio"</p>
+          <p style="margin-bottom: 0;"><strong>En Android:</strong> Chrome → Menú → "Instalar app"</p>
+
+          <div style="background: rgba(0,184,148,0.1); border-left: 4px solid var(--success); padding: 1rem; border-radius: 4px; margin-top: 1.5rem;">
+            <p style="margin: 0; font-weight: 600;">✨ La conversión es 100% lossless - calidad idéntica al PNG original</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
