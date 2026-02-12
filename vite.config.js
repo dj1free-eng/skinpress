@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/top-down-race-2/tools/skinpress/' : '/',
+  base: '/skinpress/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
