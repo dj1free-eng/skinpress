@@ -89,9 +89,9 @@ self.addEventListener('fetch', (event) => {
             }
             
             // If it's a navigation request, return index.html
-            if (event.request.mode === 'navigate') {
-              return caches.match('/index.html');
-            }
+if (event.request.mode === 'navigate') {
+  return caches.match(SCOPE + 'index.html');
+}
             
             return new Response('Offline - resource not available', {
               status: 503,
