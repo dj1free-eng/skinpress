@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "jszip": "^3.10.1",
+    "@squoosh/lib": "^0.5.3"
     "webp-wasm": "^1.0.1"
   }
 }
