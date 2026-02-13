@@ -1,53 +1,52 @@
-// WebP Encoder using Canvas API with lossless settings
-// This provides true lossless conversion by using the browser's native WebP encoder
+// src/worker.js
+import { ImagePool } from '@squoosh/lib';
 
-self.onmessage = async function(e) {
-  const { id, imageData, width, height } = e.data;
-  
+const pool = new ImagePool(1);
+
+self.onmessage = async (e) => {
+  const { id, imageData } = e.data;
+
   try {
-    // Create an OffscreenCanvas (supported in workers)
-    const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-    
-    // Load the image
-    const img = await createImageBitmap(await fetch(imageData).then(r => r.blob()));
-    
-    // Draw to canvas
-    ctx.drawImage(img, 0, 0);
-    
-    // Convert to WebP with lossless quality
-    // The 'quality' parameter at 1.0 with 'image/webp' should produce lossless output
-    // Modern browsers (Chrome, Edge, Safari 16.4+) support lossless WebP
-    const blob = await canvas.convertToBlob({
-      type: 'image/webp',
-      quality: 1.0 // Maximum quality for lossless
+    // imageData llega como DataURL (data:image/png;base64,...)
+    // Lo convertimos a bytes sin depender de canvas
+    const resp = await fetch(imageData);
+    const buf = await resp.arrayBuffer();
+    const input = new Uint8Array(buf);
+
+    const image = pool.ingestImage(input);
+    await image.decode();
+
+    // WebP lossless real (WASM codec)
+    await image.encode({
+      webp: {
+        lossless: 1,
+        quality: 100
+      }
     });
-    
-    // Verify it's actually WebP
-    if (!blob.type.includes('webp')) {
-      throw new Error('Browser does not support WebP encoding');
-    }
-    
-    // Convert blob to data URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      self.postMessage({
-        type: 'complete',
-        id,
-        webpData: reader.result,
-        size: blob.size
-      });
-    };
-    reader.onerror = () => {
-      throw new Error('Failed to read blob');
-    };
-    reader.readAsDataURL(blob);
-    
-  } catch (error) {
+
+    const encoded = await image.encodedWith.mimeType('image/webp');
+    const outBuf = encoded.binary.buffer;
+
+    // Pasamos el webp como DataURL para no tocar tu main.js
+    const blob = new Blob([outBuf], { type: 'image/webp' });
+    const webpData = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+
+    self.postMessage({
+      type: 'complete',
+      id,
+      webpData,
+      size: blob.size
+    });
+  } catch (err) {
     self.postMessage({
       type: 'error',
       id,
-      error: error.message
+      error: err?.message || String(err)
     });
   }
 };
