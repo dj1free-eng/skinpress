@@ -16,5 +16,5 @@
 "dependencies": {
   "jszip": "^3.10.1",
   "wasm-webp": "^1.0.0"
-}
+ }
 }
